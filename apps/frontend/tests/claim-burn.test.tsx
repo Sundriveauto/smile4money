@@ -4,9 +4,16 @@ import { describe, it, expect, vi } from 'vitest';
 import { ClaimBurn } from '../src/components/claim-burn';
 
 describe('ClaimBurn — wallet states', () => {
-  it('shows checking/connecting spinner while loading', () => {
+  it('shows checking state while detecting wallet', () => {
     render(<ClaimBurn walletState="checking" />);
-    expect(screen.getByTestId('wallet-connecting')).toBeInTheDocument();
+    expect(screen.getByTestId('wallet-checking')).toBeInTheDocument();
+    expect(screen.getByText(/Checking wallet/)).toBeInTheDocument();
+  });
+
+  it('shows checking state uses different testid from connecting', () => {
+    render(<ClaimBurn walletState="checking" />);
+    expect(screen.getByTestId('wallet-checking')).toBeInTheDocument();
+    expect(screen.queryByTestId('wallet-connecting')).not.toBeInTheDocument();
   });
 
   it('shows connect prompt when disconnected', () => {

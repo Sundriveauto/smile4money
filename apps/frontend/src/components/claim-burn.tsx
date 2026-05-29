@@ -45,7 +45,8 @@ export function ClaimBurn({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!amount || Number(amount) <= 0) return;
+    const parsed = Number(amount);
+    if (!amount || isNaN(parsed) || parsed <= 0) return;
 
     setStatus('pending');
     setErrorMsg('');
@@ -90,6 +91,15 @@ export function ClaimBurn({
         <button className="btn btn-connect" onClick={onConnect} data-testid="connect-wallet-btn">
           Connect Wallet
         </button>
+      </div>
+    );
+  }
+
+  function renderChecking() {
+    return (
+      <div className="wallet-state" data-testid="wallet-checking">
+        <Spinner size={32} />
+        <p className="wallet-state-message">Checking wallet connection&hellip;</p>
       </div>
     );
   }
@@ -223,7 +233,7 @@ export function ClaimBurn({
   }
 
   const stateMap: Record<WalletState, React.ReactNode> = {
-    checking: renderConnecting(),
+    checking: renderChecking(),
     notInstalled: renderNotInstalled(),
     disconnected: renderDisconnected(),
     connecting: renderConnecting(),

@@ -11,8 +11,20 @@ interface ClaimBurnProps {
   onClaim?: (amount: string) => Promise<void>;
   onBurn?: (amount: string) => Promise<void>;
   onSwitchNetwork?: () => void;
+  onDisconnect?: () => void;
   publicKey?: string | null;
   expectedNetwork?: string;
+  balance?: string | null;
+}
+
+function Spinner({ size = 16 }: { size?: number }) {
+  return (
+    <span
+      className="spinner-icon"
+      style={{ width: size, height: size, borderWidth: 2 }}
+      data-testid="spinner-icon"
+    />
+  );
 }
 
 export function ClaimBurn({
@@ -21,8 +33,10 @@ export function ClaimBurn({
   onClaim,
   onBurn,
   onSwitchNetwork,
+  onDisconnect,
   publicKey,
   expectedNetwork = 'testnet',
+  balance,
 }: ClaimBurnProps) {
   const [mode, setMode] = useState<Mode>('claim');
   const [amount, setAmount] = useState('');
@@ -83,7 +97,7 @@ export function ClaimBurn({
   function renderConnecting() {
     return (
       <div className="wallet-state" data-testid="wallet-connecting">
-        <div className="spinner" />
+        <Spinner size={32} />
         <p className="wallet-state-message">Connecting to Freighter&hellip;</p>
       </div>
     );
@@ -132,10 +146,29 @@ export function ClaimBurn({
 
         {publicKey && (
           <div className="wallet-info" data-testid="wallet-info">
-            <span className="wallet-info-label">Connected</span>
-            <span className="wallet-info-address">
-              {publicKey.slice(0, 4)}&hellip;{publicKey.slice(-4)}
-            </span>
+            <div className="wallet-info-left">
+              <span className="wallet-info-label">Connected</span>
+              <span className="wallet-info-address" data-testid="wallet-address">
+                {publicKey.slice(0, 4)}&hellip;{publicKey.slice(-4)}
+              </span>
+            </div>
+            {onDisconnect && (
+              <button
+                className="btn-disconnect"
+                onClick={onDisconnect}
+                data-testid="disconnect-btn"
+                title="Disconnect wallet"
+              >
+                &times;
+              </button>
+            )}
+          </div>
+        )}
+
+        {balance !== null && balance !== undefined && (
+          <div className="balance-display" data-testid="balance-display">
+            <span className="balance-label">Balance</span>
+            <span className="balance-value">{balance} XLM</span>
           </div>
         )}
 
@@ -143,24 +176,33 @@ export function ClaimBurn({
           <label htmlFor="amount">
             {mode === 'claim' ? 'Claim amount' : 'Burn amount'} (XLM)
           </label>
-          <input
-            id="amount"
-            type="number"
-            min="0"
-            step="any"
-            value={amount}
-            onChange={(e) => { setAmount(e.target.value); setStatus('idle'); }}
-            placeholder="0.00"
-            disabled={status === 'pending'}
-            data-testid="amount-input"
-          />
+          <div className="input-row">
+            <input
+              id="amount"
+              type="number"
+              min="0"
+              step="any"
+              value={amount}
+              onChange={(e) => { setAmount(e.target.value); setStatus('idle'); }}
+              placeholder="0.00"
+              disabled={status === 'pending'}
+              data-testid="amount-input"
+            />
+          </div>
           <button
             type="submit"
             className={`btn btn-${mode}`}
             disabled={status === 'pending' || !amount || Number(amount) <= 0}
             data-testid="submit-btn"
           >
-            {status === 'pending' ? 'Processing\u2026' : mode === 'claim' ? 'Claim' : 'Burn'}
+            {status === 'pending' ? (
+              <span className="btn-loading">
+                <Spinner size={16} />
+                Processing&hellip;
+              </span>
+            ) : (
+              mode === 'claim' ? 'Claim' : 'Burn'
+            )}
           </button>
         </form>
 

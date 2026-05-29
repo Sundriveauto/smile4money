@@ -25,6 +25,7 @@ describe('ClaimBurn — wallet states', () => {
   it('shows connecting state', () => {
     render(<ClaimBurn walletState="connecting" />);
     expect(screen.getByTestId('wallet-connecting')).toBeInTheDocument();
+    expect(screen.getByTestId('spinner-icon')).toBeInTheDocument();
   });
 
   it('shows notInstalled state', () => {
@@ -65,7 +66,42 @@ describe('ClaimBurn — wallet states', () => {
       />,
     );
     expect(screen.getByTestId('wallet-info')).toBeInTheDocument();
-    expect(screen.getByText(/GABC/)).toBeInTheDocument();
+    expect(screen.getByTestId('wallet-address')).toHaveTextContent('GABC');
+  });
+
+  it('shows disconnect button when onDisconnect provided', () => {
+    const onDisconnect = vi.fn();
+    render(
+      <ClaimBurn
+        walletState="connected"
+        publicKey="GABCDEF1234567890XYZ"
+        onDisconnect={onDisconnect}
+      />,
+    );
+    expect(screen.getByTestId('disconnect-btn')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('disconnect-btn'));
+    expect(onDisconnect).toHaveBeenCalledOnce();
+  });
+
+  it('shows balance when provided', () => {
+    render(
+      <ClaimBurn
+        walletState="connected"
+        balance="1000.50"
+      />,
+    );
+    expect(screen.getByTestId('balance-display')).toBeInTheDocument();
+    expect(screen.getByTestId('balance-display')).toHaveTextContent('1000.50 XLM');
+  });
+
+  it('does not show balance when null', () => {
+    render(
+      <ClaimBurn
+        walletState="connected"
+        balance={null}
+      />,
+    );
+    expect(screen.queryByTestId('balance-display')).not.toBeInTheDocument();
   });
 });
 
@@ -110,6 +146,16 @@ describe('ClaimBurn — submit', () => {
     fireEvent.click(screen.getByTestId('submit-btn'));
     await waitFor(() => expect(screen.getByTestId('success-msg')).toBeInTheDocument());
     expect(onBurn).toHaveBeenCalledWith('25');
+  });
+
+  it('shows spinner in button while pending', async () => {
+    const onClaim = vi.fn().mockImplementation(() => new Promise((r) => setTimeout(r, 100)));
+    render(<ClaimBurn walletState="connected" onClaim={onClaim} />);
+    fireEvent.change(screen.getByTestId('amount-input'), { target: { value: '10' } });
+    fireEvent.click(screen.getByTestId('submit-btn'));
+    expect(screen.getByTestId('spinner-icon')).toBeInTheDocument();
+    expect(screen.getByText(/Processing/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId('success-msg')).toBeInTheDocument());
   });
 
   it('shows error on failure', async () => {

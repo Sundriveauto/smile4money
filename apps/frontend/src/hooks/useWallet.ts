@@ -9,6 +9,7 @@ declare global {
       getPublicKey: () => Promise<string>;
       getNetwork: () => Promise<{ network: string; networkPassphrase: string }>;
       setAllowed: () => Promise<{ error?: { code: number; message: string } }>;
+      switchNetwork: () => Promise<{ network: string; networkPassphrase: string }>;
     };
   }
 }
@@ -92,14 +93,27 @@ export function useWallet() {
 
   const switchNetwork = useCallback(async () => {
     setError(null);
-    const net = await window.stellar?.getNetwork();
-    if (net && net.network !== EXPECTED_NETWORK) {
-      setState('wrongNetwork');
-      setError(`Please switch your Freighter wallet to ${EXPECTED_NETWORK} manually.`);
-    } else {
-      await checkConnection();
+
+    if (!window.stellar?.switchNetwork) {
+      setError('Freighter does not support programmatic network switching. Please switch manually.');
+      return;
     }
-  }, [checkConnection]);
+
+    try {
+      await window.stellar.switchNetwork();
+      const net = await window.stellar.getNetwork();
+      if (net.network === EXPECTED_NETWORK) {
+        setState('connected');
+        setError(null);
+      } else {
+        setState('wrongNetwork');
+        setError(`Expected ${EXPECTED_NETWORK}, got ${net.network}`);
+      }
+    } catch {
+      setState('wrongNetwork');
+      setError('Failed to switch network. Please switch manually in Freighter.');
+    }
+  }, []);
 
   const disconnect = useCallback(() => {
     setState('disconnected');

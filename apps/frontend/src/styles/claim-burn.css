@@ -163,6 +163,25 @@
   text-overflow: ellipsis;
 }
 
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.btn-copy:hover {
+  color: #6c63ff;
+  background: rgba(108, 99, 255, 0.08);
+}
+
 .btn-disconnect {
   display: inline-flex;
   align-items: center;

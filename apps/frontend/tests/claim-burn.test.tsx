@@ -76,6 +76,17 @@ describe('ClaimBurn — wallet states', () => {
     expect(screen.getByTestId('wallet-address')).toHaveTextContent('GABC');
   });
 
+  it('shows copy address button when publicKey provided', () => {
+    render(
+      <ClaimBurn
+        walletState="connected"
+        publicKey="GABCDEF1234567890XYZ"
+      />,
+    );
+    expect(screen.getByTestId('copy-address-btn')).toBeInTheDocument();
+    expect(screen.getByTestId('copy-address-btn')).toHaveAttribute('aria-label', 'Copy wallet address');
+  });
+
   it('shows disconnect button when onDisconnect provided', () => {
     const onDisconnect = vi.fn();
     render(
